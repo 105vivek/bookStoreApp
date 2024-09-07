@@ -1,27 +1,52 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from "react-hot-toast";
 function Login() {
-  // const {
-  //   register,
-  //   handleSubmit,
-  //   formState: { errors },
-  // } = useForm();
-  // const onSubmit = (data) => console.log(data);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const onSubmit = async (data) => {
+    const userInfo = {
+      email: data.email,
+      password: data.password,
+    };
+    console.log(data);
+    await axios
+      .post("http://localhost:4000/user/login", userInfo)
+      .then((res) => {
+        console.log(res.data);
+        if (res.data) {
+          toast.success("Logged in created!");
+          document.getElementById("my_modal_2").close();
+          setTimeout(() => {
+            window.location.reload();
+            localStorage.setItem("Users", JSON.stringify(res.data.user));
+          }, 3000);
+        }
+      })
+      .catch((err) => {
+        if (err.response) {
+          console.log(err);
+          toast.error("Error: " + err.response.data.message);
+          setTimeout(() => {}, 3000);
+        }
+      });
+  };
 
   return (
     <div>
       <dialog id="my_modal_2" className="modal">
         <div className="modal-box">
-          <form
-            method="dialog"
-            // onSubmit={handleSubmit(onSubmit)}
-          >
+          <form method="dialog" onSubmit={handleSubmit(onSubmit)}>
             {/* if there is a button in form, it will close the modal */}
             <Link
               className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
               to={"/"}
-              onClick={() => document.getElementById("my_modal_2").closest()}
+              onClick={() => document.getElementById("my_modal_2").close()}
             >
               ✕
             </Link>
@@ -34,8 +59,14 @@ function Login() {
                 type="email"
                 placeholder="Enter your e-mail"
                 className="w-80 px-3 border rounded:md outline-none mt-2 mb-2"
-                // {...register("email", { required: true })}
+                {...register("email", { required: true })}
               />
+              <br />
+              {errors.email && (
+                <span className="text-sm text-red-500">
+                  This field is required
+                </span>
+              )}
             </div>
             <div className="mt-4 space-y-2">
               <span>Password</span>
@@ -44,8 +75,14 @@ function Login() {
                 type="password"
                 placeholder="Enter your password"
                 className="w-80 px-3 py-1 border rounded:md outline-none mt-4"
-                // {...register("password", { required: true })}
+                {...register("password", { required: true })}
               />
+              <br />
+              {errors.password && (
+                <span className="text-sm text-red-500">
+                  This field is required
+                </span>
+              )}
             </div>
             {/* button */}
             <div className="flex justify-around mt-4">
